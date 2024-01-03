@@ -19,8 +19,8 @@ jobs:
         with:
           name: ${{ matrix.os }}-release
           path: |
-            target/release/v8_killer_core.dll
-            target/release/v8_killer_launcher.exe
-            target/release/libv8_killer_core.so
-            target/release/libv8_killer_launcher.so
-            target/release/v8_killer_launcher
+            target/release/core.dll
+            target/release/launcher.exe
+            target/release/libcore.so
+            target/release/liblauncher.so
+            target/release/launcher

@@ -1,5 +1,5 @@
 [package]
-name = "v8_killer_launcher"
+name = "launcher"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

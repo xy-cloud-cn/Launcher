@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::process::exit;
 
 use ctor::ctor;
 use frida_gum::interceptor::{InvocationContext, InvocationListener};
@@ -58,50 +59,44 @@ fn init() {
     }
 
     // 读取环境变量
-    let config_file_path = std::env::var("V8_KILLER_CONFIG_FILE_PATH");
-    match config_file_path {
-        Ok(config_file_path) => {
-            println!("[*] V8_KILLER_CONFIG_FILE_PATH: {}", config_file_path);
-            let path = Path::new(&config_file_path);
-            let config = Config::load_from_toml(path);
-            println!("[*] Read Config success");
-            println!("[*] Config: {:?}", config);
-            unsafe {
-                CONFIG = Some(config);
-            }
-            let mut interceptor = Interceptor::obtain(&GUM);
+    let config_file_path = "./config.toml";
+    if !Path::new(config_file_path).exists() {
+        println!("Can't find config file!");
+        exit(1)
+    }
+    let path = Path::new(&config_file_path);
+    let config = Config::load_from_toml(path);
+    println!("[*] Read Config success");
+    println!("[*] Config: {:?}", config);
+    unsafe {
+        CONFIG = Some(config);
+    }
+    let mut interceptor = Interceptor::obtain(&GUM);
 
-            interceptor.begin_transaction();
+    interceptor.begin_transaction();
 
-            let v8_script_compiler_compile_function_internal = unsafe { CONFIG.as_ref().unwrap() }
-                .identifiers
-                .V8_SCRIPT_COMPILER_COMPILE_FUNCTION_INTERNAL
-                .identify();
+    let v8_script_compiler_compile_function_internal = unsafe { CONFIG.as_ref().unwrap() }
+        .identifiers
+        .V8_SCRIPT_COMPILER_COMPILE_FUNCTION_INTERNAL
+        .identify();
 
-            match v8_script_compiler_compile_function_internal {
-                None => {
-                    println!("[-] v8_script_compiler_compile_function_internal not found")
-                }
-                Some(addr) => {
-                    println!(
-                        "[*] v8_script_compiler_compile_function_internal found: {:?}",
-                        addr.0
-                    );
-                    let mut v8_script_compiler_compile_function_internal_listener =
-                        V8ScriptCompilerCompileFunctionInternalListener;
-                    interceptor.attach(
-                        addr,
-                        &mut v8_script_compiler_compile_function_internal_listener,
-                    );
-                }
-            }
-
-            interceptor.end_transaction();
+    match v8_script_compiler_compile_function_internal {
+        None => {
+            println!("[-] v8_script_compiler_compile_function_internal not found")
         }
-        Err(_) => {
-            println!("[-] WARN: V8_KILLER_CONFIG_FILE_PATH not found");
-            println!("[-] WARN: Please set V8_KILLER_CONFIG_FILE_PATH to config file path");
-            println!("[-] WARN: Without config file, V8 Killer will do nothing");
+        Some(addr) => {
+            println!(
+                "[*] v8_script_compiler_compile_function_internal found: {:?}",
+                addr.0
+            );
+            let mut v8_script_compiler_compile_function_internal_listener =
+                V8ScriptCompilerCompileFunctionInternalListener;
+            interceptor.attach(
+                addr,
+                &mut v8_script_compiler_compile_function_internal_listener,
+            );
         }
     }
+
+    interceptor.end_transaction();
 }

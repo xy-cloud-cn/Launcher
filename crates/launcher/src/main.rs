@@ -1,6 +1,6 @@
 use std::env::current_exe;
 
-use v8_killer_launcher::{default_lib_filename, launch};
+use launcher::{default_lib_filename, launch};
 
 fn main() {
     // TODO: Support custom lib_filename
