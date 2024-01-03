@@ -67,7 +67,7 @@ fn init() {
     let path = Path::new(&config_file_path);
     let config = Config::load_from_toml(path);
     println!("[*] Read Config success");
-    println!("[*] Config: {:?}", config);
+    // println!("[*] Config: {:?}", config);
     unsafe {
         CONFIG = Some(config);
     }

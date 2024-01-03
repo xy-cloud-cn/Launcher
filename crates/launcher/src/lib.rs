@@ -83,13 +83,13 @@ pub fn launch(lib_path: &str, executable: &str, args: &[String]) {
                 .collect::<Vec<String>>()
                 .join(" ")
         );
-        println!("args_str:{:?}", args_str);
+        // println!("args_str:{:?}", args_str);
         let mut args_utf16_vec = utf16_vec_from_str(args_str);
         let args_pwstr = PWSTR::from_raw(args_utf16_vec.as_mut_ptr());
         let mut path_utf16_vec = utf16_vec_from_str(lib_path.to_string());
         let path_pwstr = PWSTR::from_raw(path_utf16_vec.as_mut_ptr());
         let path_utf16_zeroend_size = get_pwstr_length(path_pwstr) * 2 + 2;
-        println!("args_pwstr:{:?}", args_pwstr);
+        // println!("args_pwstr:{:?}", args_pwstr);
         let mut process_info = PROCESS_INFORMATION::default();
         println!("[*] Creating process.");
         CreateProcessW(
