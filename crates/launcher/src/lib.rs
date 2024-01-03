@@ -1,12 +1,47 @@
 use std::error::Error;
 
 pub fn default_lib_filename<'a>() -> Result<&'a str, Box<dyn Error>> {
+    #[cfg(target_os = "linux")]
+    {
+        Ok("libcore.so")
+    }
+
     #[cfg(target_os = "windows")]
     {
         Ok("core.dll")
     }
+
+
+    // 默认情况，如果没有匹配的操作系统，则返回一个合适的默认值
+    #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
+    {
+        Err("Unsupported platform".into())
+    }
 }
 
+#[cfg(target_os = "linux")]
+pub fn launch(lib_path: &str, executable: &str, args: &[String]) {
+    use std::process::Command;
+    use std::process::ExitStatus;
+    use std::process::Stdio;
+
+    let mut child = Command::new(executable)
+        .args(args)
+        .env("LD_PRELOAD", lib_path)
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .spawn()
+        .expect("Failed to start command");
+
+    let status: ExitStatus = child.wait().expect("Failed to wait for child process");
+
+    if status.success() {
+        println!("Command executed successfully");
+    } else {
+        println!("Command failed with exit code: {:?}", status.code());
+    }
+}
 
 #[cfg(target_os = "windows")]
 pub fn launch(lib_path: &str, executable: &str, args: &[String]) {
