@@ -1,52 +1,12 @@
 use std::error::Error;
 
 pub fn default_lib_filename<'a>() -> Result<&'a str, Box<dyn Error>> {
-    #[cfg(target_os = "linux")]
-    {
-        Ok("libv8_killer_core.so")
-    }
-
     #[cfg(target_os = "windows")]
     {
-        Ok("v8_killer_core.dll")
-    }
-
-    #[cfg(target_os = "macos")]
-    {
-        // TODO: not sure
-        Ok("libv8_killer_core.dylib")
-    }
-
-    // 默认情况，如果没有匹配的操作系统，则返回一个合适的默认值
-    #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
-    {
-        Err("Unsupported platform".into())
+        Ok("core.dll")
     }
 }
 
-#[cfg(target_os = "linux")]
-pub fn launch(lib_path: &str, executable: &str, args: &[String]) {
-    use std::process::Command;
-    use std::process::ExitStatus;
-    use std::process::Stdio;
-
-    let mut child = Command::new(executable)
-        .args(args)
-        .env("LD_PRELOAD", lib_path)
-        .stdin(Stdio::inherit())
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .spawn()
-        .expect("Failed to start command");
-
-    let status: ExitStatus = child.wait().expect("Failed to wait for child process");
-
-    if status.success() {
-        println!("Command executed successfully");
-    } else {
-        println!("Command failed with exit code: {:?}", status.code());
-    }
-}
 
 #[cfg(target_os = "windows")]
 pub fn launch(lib_path: &str, executable: &str, args: &[String]) {
@@ -88,12 +48,13 @@ pub fn launch(lib_path: &str, executable: &str, args: &[String]) {
                 .collect::<Vec<String>>()
                 .join(" ")
         );
+        println!("args_str:{:?}", args_str);
         let mut args_utf16_vec = utf16_vec_from_str(args_str);
         let args_pwstr = PWSTR::from_raw(args_utf16_vec.as_mut_ptr());
         let mut path_utf16_vec = utf16_vec_from_str(lib_path.to_string());
         let path_pwstr = PWSTR::from_raw(path_utf16_vec.as_mut_ptr());
         let path_utf16_zeroend_size = get_pwstr_length(path_pwstr) * 2 + 2;
-
+        println!("args_pwstr:{:?}", args_pwstr);
         let mut process_info = PROCESS_INFORMATION::default();
         println!("[*] Creating process.");
         CreateProcessW(
@@ -159,15 +120,4 @@ pub fn launch(lib_path: &str, executable: &str, args: &[String]) {
         ResumeThread(process_info.hThread);
         WaitForSingleObject(process_info.hProcess, INFINITE);
     }
-}
-
-#[cfg(target_os = "macos")]
-pub fn launch(lib_path: &str, exe_cmdline: &str) {
-    eprintln!("macOS is not supported yet.");
-}
-
-// 非以上系统
-#[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
-pub fn launch(lib_path: &str, exe_cmdline: &str) {
-    eprintln!("Unsupported platform.");
 }
