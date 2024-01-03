@@ -1,5 +1,4 @@
 use std::path::Path;
-use std::process::exit;
 
 use ctor::ctor;
 use frida_gum::interceptor::{InvocationContext, InvocationListener};
@@ -59,13 +58,9 @@ fn init() {
     }
 
     // 读取环境变量
-    let config_file_path = "./config.toml";
-    if !Path::new(config_file_path).exists() {
-        println!("Can't find config file!");
-        exit(1)
-    }
+    let config_file_path = "./config.json";
     let path = Path::new(&config_file_path);
-    let config = Config::load_from_toml(path);
+    let config = Config::load_from_json(path);
     println!("[*] Read Config success");
     // println!("[*] Config: {:?}", config);
     unsafe {

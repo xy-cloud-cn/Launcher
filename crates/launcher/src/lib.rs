@@ -11,7 +11,6 @@ pub fn default_lib_filename<'a>() -> Result<&'a str, Box<dyn Error>> {
         Ok("core.dll")
     }
 
-
     // 默认情况，如果没有匹配的操作系统，则返回一个合适的默认值
     #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
     {
